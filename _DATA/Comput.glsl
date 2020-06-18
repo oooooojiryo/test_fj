@@ -521,7 +521,7 @@ bool ObjSpher( in TRay Ray, inout THit Hit )
       Hit.t   = t;
       Hit.Pos = Ray.Pos + t * Ray.Vec;
       Hit.Nor = Hit.Pos;
-      Hit.Mat = 4;
+      Hit.Mat = 5;
 
       EndMove( Hit );
 
@@ -801,6 +801,33 @@ TRay MatThinf( in TRay Ray, in THit Hit )
   return Result;
 }
 
+TRay MatLambe( in TRay Ray, in THit Hit )
+{
+  TRay Result;
+
+  vec4 LIGHT = vec4(0, 2, 0, 0);                                                // 光源を設定
+
+  float C =  dot( Hit.Nor.xyz, normalize( LIGHT.xyz - Hit.Nor.xyz ) );
+  if( C > 0 )
+  {
+    float r =  0.9606217 * 1.0 * Rand() * C;
+    float g =  0.8449545 * 1.0 * Rand() * C;
+    float b =  0.4129899 * 1.0 * Rand() * C;
+
+    Result.Emi = Ray.Emi + vec3( r, g, b );
+  }
+  else
+  {
+    Result.Emi = Ray.Emi;
+  }
+
+  Result.Vec = Ray.Vec;
+  Result.Pos = Ray.Pos;
+  Result.Wei = Ray.Wei;
+
+  return Result;
+}
+
 //##############################################################################
 
 void Raytrace( inout TRay Ray )
@@ -824,6 +851,7 @@ void Raytrace( inout TRay Ray )
       case 2: Ray = MatWater( Ray, Hit ); break;
       case 3: Ray = MatDiffu( Ray, Hit ); break;
       case 4: Ray = MatThinf( Ray, Hit ); break;
+      case 5: Ray = MatLambe( Ray, Hit ); break;
     }
   }
 }
