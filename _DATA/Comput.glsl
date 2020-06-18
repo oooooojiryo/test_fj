@@ -783,9 +783,9 @@ TRay MatThinf( in TRay Ray, in THit Hit )
 
     switch( count )
     {
-      case 0: X = SumX * 2 * Pow2( A ) * Pow2( A ) * V; break;
-      case 1: Y = SumY * 2 * Pow2( A ) * Pow2( A ) * V; break;
-      case 2: Z = SumZ * 2 * Pow2( A ) * Pow2( A ) * V; break;
+      case 0: X = SumX * 2 * Pow2( A ) + Pow2( A ) * V; break;
+      case 1: Y = SumY * 2 * Pow2( A ) + Pow2( A ) * V; break;
+      case 2: Z = SumZ * 2 * Pow2( A ) + Pow2( A ) * V; break;
     }
   }
 
