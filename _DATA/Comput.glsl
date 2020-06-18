@@ -552,16 +552,16 @@ vec3 waveLengthToRGB( in float lambda )
 TRay MatThinf( in TRay Ray, in THit Hit )
 {
   TRay Result;
-  float IOR, D, m, C, lambda;                                              // Dとlambdaは、D nm、lambda nmとする
+  float IOR, D, m, C, lambda;                                                   // Dとlambdaは、D nm、lambda nmとする
 
   IOR = 1.333;
-  D = 1000;
+  D = 1000 * Rand();
   m = 0;
 
   C = sqrt( 1 - ( 1 - Pow2( dot( Hit.Nor, -Ray.Vec ) ) ) / Pow2( IOR ) );
   lambda = 2 * IOR * D * C / (m + 0.5);
 
-  for( m = 0; lambda < 380 && lambda > 750 && lambda > 370; m += 1.0)             // lambdaが380~750に収まる予定で書いてるけど大丈夫なのか？
+  for( m = 0; lambda < 380 && lambda > 750 && lambda > 370; m += 1.0)           // lambdaが380~750に収まる予定で書いてるけど大丈夫なのか？
   {
     lambda = 2 * IOR * D * C / (m + 0.5);
   }
