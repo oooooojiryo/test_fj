@@ -136,10 +136,11 @@ uniform sampler2D _Textur;
 
 struct TRay
 {
-  vec4 Pos;
-  vec4 Vec;
-  vec3 Wei;
-  vec3 Emi;
+  vec4  Pos;
+  vec4  Vec;
+  float Wei; // 波長 Wav における重み
+  float Emi; // 波長 Wav における輝度
+  float Wav; // 波長(nm)
 };
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% THit
@@ -329,16 +330,17 @@ vec3 waveLengthToRGB( in float lambda )
 TRay MatThinf( in TRay Ray, in THit Hit )
 {
   TRay Result;
-  float IOR, D, m, C, lambda;                                              // Dとlambdaは、D nm、lambda nmとする
+  float IOR, D, m, C, lambda;                                                   // Dとlambdaは、D nm、lambda nmとする
 
   IOR = 1.333;
-  D = 1000;
+  D = 1000 * Rand();
   m = 0;
 
+  /***************************************
   C = sqrt( 1 - ( 1 - Pow2( dot( Hit.Nor, -Ray.Vec ) ) ) / Pow2( IOR ) );
   lambda = 2 * IOR * D * C / (m + 0.5);
 
-  for( m = 0; lambda < 380 && lambda > 750 && lambda > 370; m += 1.0)             // lambdaが380~750に収まる予定で書いてるけど大丈夫なのか？
+  for( m = 0; lambda < 380 && lambda > 750 && lambda > 370; m += 1.0)           // lambdaが380~750に収まる予定で書いてるけど大丈夫なのか？
   {
     lambda = 2 * IOR * D * C / (m + 0.5);
   }
@@ -348,7 +350,7 @@ TRay MatThinf( in TRay Ray, in THit Hit )
   Result.Pos = Ray.Pos;
   Result.Wei = Ray.Wei;
   Result.Emi += waveLengthToRGB( lambda );
-
+  ****************************************/
 
   return Result;
 }
@@ -376,7 +378,7 @@ void Raytrace( inout TRay Ray )
       case 0: Ray = MatSkyer( Ray, Hit ); return;
       case 1: Ray = MatMirro( Ray, Hit ); break;
       case 2: Ray = MatWater( Ray, Hit ); break;
-      case 3: Ray = MatThinf( Ray, Hit ); return;
+      case 3: Ray = MatThinf( Ray, Hit ); break;
     }
   }
 }
