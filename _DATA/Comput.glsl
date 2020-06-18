@@ -406,12 +406,13 @@ void main()
 
     R.Pos = _Camera * E;
     R.Vec = _Camera * normalize( S - E );
-    R.Wei = vec3( 1 );
-    R.Emi = vec3( 0 );
+    R.Wei = 1;
+    R.Emi = 1;
+    R.Wav = ( 780.0 - 380.0 ) * Rand() + 380.0;
 
     Raytrace( R );
 
-    C = R.Wei * R.Emi;
+    C = R.Wei * R.Emi * waveLengthToRGB( R.Wav );
 
     A += ( C - A ) / N;
   }
