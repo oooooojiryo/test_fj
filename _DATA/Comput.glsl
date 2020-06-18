@@ -793,8 +793,8 @@ TRay MatThinf( in TRay Ray, in THit Hit )
   g = -0.969256 * X + 1.875992 * Y + 0.041556 * Z;
   b =  0.055648 * X - 0.204043 * Y + 1.057311 * Z;
 
-  Result.Vec = Ray.Vec;
-  Result.Pos = Ray.Pos;
+  Result.Vec = vec4( reflect( Ray.Vec.xyz, Hit.Nor.xyz ), 0 );
+  Result.Pos = Hit.Pos + _EmitShift * Hit.Nor;
   Result.Wei = Ray.Wei;
   Result.Emi = Ray.Emi + vec3( r, g, b );
 
