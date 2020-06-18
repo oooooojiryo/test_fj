@@ -493,6 +493,8 @@ TRay MatDiffu( in TRay Ray, in THit Hit )
   return Result;
 }
 
+//------------------------------------------------------------------------------
+
 vec3 waveLengthToRGB( in float lambda )
 {
     //中心波長[nm]
@@ -549,13 +551,15 @@ vec3 waveLengthToRGB( in float lambda )
     return vec3(r,g,b);
 }
 
+//------------------------------------------------------------------------------
+
 TRay MatThinf( in TRay Ray, in THit Hit )
 {
   TRay Result;
   float IOR, D, m, C, lambda;                                                   // Dとlambdaは、D nm、lambda nmとする
 
-  IOR = 1.333;
-  D = 1000 * Rand();
+  IOR = 1.333;                                                                  // 水を想定
+  D = 1000 * Rand();                                                            // 薄膜の厚さを最大1000nmとする
   m = 0;
 
   C = sqrt( 1 - ( 1 - Pow2( dot( Hit.Nor, -Ray.Vec ) ) ) / Pow2( IOR ) );
@@ -566,17 +570,13 @@ TRay MatThinf( in TRay Ray, in THit Hit )
     lambda = 2 * IOR * D * C / (m + 0.5);
   }
 
-
   Result.Vec = Ray.Vec;
   Result.Pos = Ray.Pos;
   Result.Wei = Ray.Wei;
-  Result.Emi += waveLengthToRGB( lambda );
-
+  Result.Emi = Ray.Emi + waveLengthToRGB( lambda );
 
   return Result;
 }
-
-
 
 //##############################################################################
 
