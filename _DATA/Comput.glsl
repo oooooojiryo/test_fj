@@ -807,13 +807,13 @@ TRay MatLambe( in TRay Ray, in THit Hit )
 
   vec4 LIGHT = vec4(0, 2, 0, 0);                                                // 光源を設定
 
-  float C =  dot( Hit.Nor.xyz, normalize( LIGHT.xyz - Hit.Nor.xyz ) );
+  float C =  dot( Hit.Nor.xyz, normalize( LIGHT.xyz - Hit.Nor.xyz ) );          // 法線ベクトルと光源方向ベクトルのなす角のcos
   if( C > 0 )
-  {
-    float r =  0.9606217 * 1.0 * Rand() * C;
-    float g =  0.8449545 * 1.0 * Rand() * C;
-    float b =  0.4129899 * 1.0 * Rand() * C;
-
+  {                                                                             // ランバート反射
+    float r =  0.9606217 * 1.0 * C;                                             // 光源のRGB値は(1.0, 1.0, 1.0)に設定
+    float g =  0.8449545 * 1.0 * C;                                             // 先頭の数値は薄膜反射率シュミレータから得たもの
+    float b =  0.4129899 * 1.0 * C;                                             // 左は空気、水、金Auの薄膜干渉の場合
+                                                                                // https://www.filmetricsinc.jp/reflectance-calculator
     Result.Emi = Ray.Emi + vec3( r, g, b );
   }
   else
