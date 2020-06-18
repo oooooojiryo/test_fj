@@ -521,7 +521,7 @@ bool ObjSpher( in TRay Ray, inout THit Hit )
       Hit.t   = t;
       Hit.Pos = Ray.Pos + t * Ray.Vec;
       Hit.Nor = Hit.Pos;
-      Hit.Mat = 5;
+      Hit.Mat = 2;
 
       EndMove( Hit );
 
@@ -801,31 +801,26 @@ TRay MatThinf( in TRay Ray, in THit Hit )
   return Result;
 }
 
-TRay MatLambe( in TRay Ray, in THit Hit )
+vec3 LambReflect( in TRay Ray )
 {
   TRay Result;
 
   vec4 LIGHT = vec4(0, 2, 0, 0);                                                // 光源を設定
 
-  float C =  dot( Hit.Nor.xyz, normalize( LIGHT.xyz - Hit.Nor.xyz ) );          // 法線ベクトルと光源方向ベクトルのなす角のcos
+  float C =  dot( Ray.Pos.xyz, Ray.Vec.xyz );          // 法線ベクトルと光源方向ベクトルのなす角のcos
+                                                                                // Cの1個目のRay.Pos.xyzはSphereの時だけ成立
   if( C > 0 )
   {                                                                             // ランバート反射
-    float r =  0.9606217 * 1.0 * C;                                             // 光源のRGB値は(1.0, 1.0, 1.0)に設定
-    float g =  0.8449545 * 1.0 * C;                                             // 先頭の数値は薄膜反射率シュミレータから得たもの
-    float b =  0.4129899 * 1.0 * C;                                             // 左は空気、水、金Auの薄膜干渉の場合
+    float r =  0.9606217 * Ray.Emi.x * C;                                             // 光源のRGB値は(1.0, 1.0, 1.0)に設定
+    float g =  0.8449545 * Ray.Emi.y * C;                                             // 先頭の数値は薄膜反射率シュミレータから得たもの
+    float b =  0.4129899 * Ray.Emi.z * C;                                             // 左は空気、水、金Auの薄膜干渉の場合
                                                                                 // https://www.filmetricsinc.jp/reflectance-calculator
-    Result.Emi = Ray.Emi + vec3( r, g, b );
+    return vec3( r, g, b );
   }
   else
   {
-    Result.Emi = Ray.Emi;
+    return Ray.Emi.xyz;
   }
-
-  Result.Vec = Ray.Vec;
-  Result.Pos = Ray.Pos;
-  Result.Wei = Ray.Wei;
-
-  return Result;
 }
 
 //##############################################################################
@@ -851,7 +846,7 @@ void Raytrace( inout TRay Ray )
       case 2: Ray = MatWater( Ray, Hit ); break;
       case 3: Ray = MatDiffu( Ray, Hit ); break;
       case 4: Ray = MatThinf( Ray, Hit ); break;
-      case 5: Ray = MatLambe( Ray, Hit ); break;
+    //case 5: Ray = MatLambe( Ray, Hit ); break;
     }
   }
 }
@@ -886,7 +881,7 @@ void main()
 
     Raytrace( R );
 
-    C = R.Wei * R.Emi;
+    C = R.Wei * LambReflect( R );
 
     A += ( C - A ) / N;
   }
