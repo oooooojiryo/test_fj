@@ -521,7 +521,7 @@ bool ObjSpher( in TRay Ray, inout THit Hit )
       Hit.t   = t;
       Hit.Pos = Ray.Pos + t * Ray.Vec;
       Hit.Nor = Hit.Pos;
-      Hit.Mat = 2;
+      Hit.Mat = 6;
 
       EndMove( Hit );
 
@@ -801,6 +801,35 @@ TRay MatThinf( in TRay Ray, in THit Hit )
   return Result;
 }
 
+TRay MatDiff2( in TRay Ray, in THit Hit )
+{
+  TRay Result;
+
+  Result.Vec.y = sqrt( Rand() );                                                // MatDiffuと同じ
+
+  float d = sqrt( 1 - Pow2( Result.Vec.y ) );
+  float v = Rand();
+
+  Result.Vec.x = d * cos( Pi2 * v );
+  Result.Vec.z = d * sin( Pi2 * v );                                            // ここまで
+
+  float C = dot( Hit.Nor.xyz, Result.Vec.xyz );
+
+  Result.Pos = Hit.Pos + _EmitShift * Hit.Nor;
+  Result.Emi = Ray.Emi;
+
+  if( C > 0 )
+  {
+    Result.Wei = Ray.Wei * vec3( 0.9606217, 0.8449545, 0.4129899 );
+  }
+  else
+  {
+    Result.Wei = Ray.Wei;
+  }
+
+  return Result;
+}
+
 vec3 LambReflect( in TRay Ray )
 {
   TRay Result;
@@ -847,6 +876,7 @@ void Raytrace( inout TRay Ray )
       case 3: Ray = MatDiffu( Ray, Hit ); break;
       case 4: Ray = MatThinf( Ray, Hit ); break;
     //case 5: Ray = MatLambe( Ray, Hit ); break;
+      case 6: Ray = MatDiff2( Ray, Hit ); break;
     }
   }
 }
@@ -881,7 +911,7 @@ void main()
 
     Raytrace( R );
 
-    C = R.Wei * LambReflect( R );
+    C = R.Wei * R.Emi;
 
     A += ( C - A ) / N;
   }
