@@ -801,6 +801,24 @@ TRay MatThinf( in TRay Ray, in THit Hit )
   return Result;
 }
 
+TRay MatThin2( in TRay Ray, in THit Hit )
+{
+  TRay Result;
+  float d =1000 * Rand();
+
+  float IOR1 = 1.0;
+  float IOR2 = 1.33333;
+
+  float Theta_1 = acos( dot( Hit.Nor.xyz, -Ray.Vec.xyz ) );
+  float Theta_2 = asin( sin( Theta_1 ) * IOR1 / IOR2 );
+
+  float pm = d/ cos( Theta_2 );
+  float ps = 2 * d * sin( Theta_1 ) * tan( Theta_2 );
+  float D  = 2 * IOR2 * pm - IOR1 * ps;
+
+
+}
+
 TRay MatDiff2( in TRay Ray, in THit Hit )
 {
   TRay Result;
