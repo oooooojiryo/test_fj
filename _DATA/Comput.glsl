@@ -672,7 +672,14 @@ TRay MatSkyer( in TRay Ray, in THit Hit )
   Result.Vec = Ray.Vec;
   Result.Pos = Ray.Pos;
   Result.Wei = Ray.Wei;
-  Result.Emi = Ray.Emi + texture( _Textur, VecToSky( Ray.Vec.xyz ) ).r;
+  Result.Wav = Ray.Wav;
+
+  switch( int( floor( Rand() * 3 ) ) )
+  {
+    case 0: Result.Emi =  texture( _Textur, VecToSky( Ray.Vec.xyz ) ).r;
+    case 1: Result.Emi =  texture( _Textur, VecToSky( Ray.Vec.xyz ) ).g;
+    case 2: Result.Emi =  texture( _Textur, VecToSky( Ray.Vec.xyz ) ).b;
+  }
 
   return Result;
 }
@@ -821,10 +828,11 @@ TRay MatThin2( in TRay Ray, in THit Hit )
 
   float PD = Pi2 * mod( D / Ray.Wav, 1 );
 
-  Result.Vec = Ray.Vec;
-  Result.Pos = Ray.Pos;
+  Result.Vec = vec4( reflect( Ray.Vec.xyz, Hit.Nor.xyz ), 0 );
+  Result.Pos = Hit.Pos + _EmitShift * Hit.Nor;
   Result.Wei = Ray.Wei * Pow2( cos( PD / 2 ) );
   Result.Emi = Ray.Emi;
+  Result.Wav = Ray.Wav;
 
   return Result;
 }
