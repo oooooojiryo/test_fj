@@ -999,7 +999,7 @@ void main()
     R.Pos = _Camera * E;
     R.Vec = _Camera * normalize( S - E );
     R.Wei = 1.0;
-    R.Emi = 0;
+    R.Emi = 1.0;
     R.Wav = ( 780.0 - 380.0 ) * Rand() + 380;
 
     Raytrace( R );
