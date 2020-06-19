@@ -442,7 +442,7 @@ struct TRay
   vec4 Vec;
   float Wei;
   float Emi;
-  float Wav;
+  int Wav;
 };
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% THit
@@ -673,13 +673,13 @@ TRay MatSkyer( in TRay Ray, in THit Hit )
   Result.Pos = Ray.Pos;
   Result.Wei = Ray.Wei;
   Result.Wav = Ray.Wav;
+  //sult.Emi = Ray.Emi + texture( _Textur, VecToSky( Ray.Vec.xyz ) ).r
 
-  switch( int( floor( Rand() * 3 ) ) )
-  {
-    case 0: Result.Emi =  texture( _Textur, VecToSky( Ray.Vec.xyz ) ).r;
-    case 1: Result.Emi =  texture( _Textur, VecToSky( Ray.Vec.xyz ) ).g;
-    case 2: Result.Emi =  texture( _Textur, VecToSky( Ray.Vec.xyz ) ).b;
-  }
+  switch ( Ray.Wav ) {
+case 700: Result.Emi =  texture( _Textur, VecToSky( Ray.Vec.xyz ) ).r;
+case 546: Result.Emi =  texture( _Textur, VecToSky( Ray.Vec.xyz ) ).g;
+case 436: Result.Emi =  texture( _Textur, VecToSky( Ray.Vec.xyz ) ).b;
+}
 
   return Result;
 }
@@ -814,7 +814,7 @@ TRay MatThinf( in TRay Ray, in THit Hit )
 TRay MatThin2( in TRay Ray, in THit Hit )
 {
   TRay Result;
-  float d =1000 * Rand();
+  float d =1000;
 
   float IOR1 = 1.0;
   float IOR2 = 1.33333;
@@ -822,7 +822,7 @@ TRay MatThin2( in TRay Ray, in THit Hit )
   float Theta_1 = acos( dot( Hit.Nor.xyz, -Ray.Vec.xyz ) );
   float Theta_2 = asin( sin( Theta_1 ) * IOR1 / IOR2 );
 
-  float pm = d/ cos( Theta_2 );
+  float pm = d / cos( Theta_2 );
   float ps = 2 * d * sin( Theta_1 ) * tan( Theta_2 );
   float D  = 2 * IOR2 * pm - IOR1 * ps;
 
@@ -986,7 +986,7 @@ vec3 waveLengthToRGB( in float lambda )
 void main()
 {
   vec4 E, S;
-  TRay R;
+  TRay RayR, RayG, RayB;
   vec3 A, C, P;
 
   _RandSeed = imageLoad( _Seeder, _WorkID.xy );
@@ -1004,15 +1004,42 @@ void main()
     S.z = -2;
     S.w = 1;
 
-    R.Pos = _Camera * E;
-    R.Vec = _Camera * normalize( S - E );
-    R.Wei = 1.0;
-    R.Emi = 0;
-    R.Wav = ( 780.0 - 380.0 ) * Rand() + 380;
+    RayR.Pos = _Camera * E;
+    RayR.Vec = _Camera * normalize( S - E );
+    RayR.Wei = 1.0;
+    RayR.Emi = 0;
 
-    Raytrace( R );
+    RayG.Pos = _Camera * E;
+    RayG.Vec = _Camera * normalize( S - E );
+    RayG.Wei = 1.0;
+    RayG.Emi = 0;
 
-    C = R.Wei * R.Emi * waveLengthToRGB( R.Wav );
+    RayB.Pos = _Camera * E;
+    RayB.Vec = _Camera * normalize( S - E );
+    RayB.Wei = 1.0;
+    RayB.Emi = 0;
+
+    RayR.Wav =700;
+RayG.Wav =546;
+RayB.Wav =436;
+
+    /*
+      switch( int( floor( Rand() * 3 ) ) )
+  {
+    case 0: R.Wav =  700;
+    case 1: R.Wav =  546;
+    case 2: R.Wav =  436;
+  }
+    //R.Wav = ( 780.0 - 380.0 ) * Rand() + 380;
+    */
+
+    Raytrace( RayR );
+    Raytrace( RayG );
+    Raytrace( RayB );
+
+    C = RayR.Wei * RayR.Emi * waveLengthToRGB( RayR.Wav )
+ + RayG.Wei * RayG.Emi * waveLengthToRGB( RayG.Wav )
+ + RayB.Wei * RayB.Emi * waveLengthToRGB( RayB.Wav );
 
     A += ( C - A ) / N;
   }
