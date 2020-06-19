@@ -672,7 +672,7 @@ TRay MatSkyer( in TRay Ray, in THit Hit )
   Result.Vec = Ray.Vec;
   Result.Pos = Ray.Pos;
   Result.Wei = Ray.Wei;
-  Result.Emi = Ray.Emi + texture( _Textur, VecToSky( Ray.Vec.xyz ) ).rgb;
+  Result.Emi = Ray.Emi /*+ texture( _Textur, VecToSky( Ray.Vec.xyz ) ).rgb*/;
 
   return Result;
 }
@@ -751,6 +751,7 @@ TRay MatDiffu( in TRay Ray, in THit Hit )
 
 //------------------------------------------------------------------------------
 
+/********************************************************************************
 TRay MatThinf( in TRay Ray, in THit Hit )
 {
   TRay Result;
@@ -801,6 +802,7 @@ TRay MatThinf( in TRay Ray, in THit Hit )
 
   return Result;
 }
+*******************************************************************************/
 
 TRay MatThin2( in TRay Ray, in THit Hit )
 {
@@ -826,6 +828,8 @@ TRay MatThin2( in TRay Ray, in THit Hit )
 
   return Result;
 }
+
+/*******************************************************************************
 
 TRay MatDiff2( in TRay Ray, in THit Hit )
 {
@@ -855,7 +859,9 @@ TRay MatDiff2( in TRay Ray, in THit Hit )
 
   return Result;
 }
+*******************************************************************************/
 
+/*******************************************************************************
 vec3 LambReflect( in TRay Ray )
 {
   TRay Result;
@@ -877,6 +883,9 @@ vec3 LambReflect( in TRay Ray )
     return Ray.Emi.xyz;
   }
 }
+********************************************************************************/
+
+
 
 //##############################################################################
 
@@ -900,12 +909,68 @@ void Raytrace( inout TRay Ray )
       case 1: Ray = MatMirro( Ray, Hit ); break;
       case 2: Ray = MatWater( Ray, Hit ); break;
       case 3: Ray = MatDiffu( Ray, Hit ); break;
-      case 4: Ray = MatThinf( Ray, Hit ); break;
+    //case 4: Ray = MatThinf( Ray, Hit ); break;
     //case 5: Ray = MatLambe( Ray, Hit ); break;
-      case 6: Ray = MatDiff2( Ray, Hit ); break;
+    //case 6: Ray = MatDiff2( Ray, Hit ); break;
       case 7: Ray = MatThin2( Ray, Hit ); break;
     }
   }
+}
+
+vec3 waveLengthToRGB( in float lambda )
+{
+    //中心波長[nm]
+    float r0 = 700.0; //赤色
+    float g0 = 546.1; //緑色
+    float b0 = 435.8; //青色
+    float o0 = 605.0; //橙色
+    float y0 = 580.0; //黄色
+    float c0 = 490.0; //藍色
+    float p0 = 400.0; //紫色
+
+    //半値半幅
+    float wR = 90;
+    float wG = 80;
+    float wB = 80;
+    float wO = 60;
+    float wY = 50;
+    float wC = 50;
+    float wP = 40;
+    //強度
+    float iR = 0.95;
+    float iG = 0.74;
+    float iB = 0.75;
+
+    float iO = 0.4;
+    float iY = 0.1;
+    float iC = 0.3;
+    float iP = 0.3;
+
+    //正規分布の計算
+    float r = iR * exp( - ( lambda - r0 ) * ( lambda - r0 ) / ( wR * wR )  );
+    float g = iG * exp( - ( lambda - g0 ) * ( lambda - g0 ) / ( wG * wG )  );
+    float b = iB * exp( - ( lambda - b0 ) * ( lambda - b0 ) / ( wB * wB )  );
+    float o = iO * exp( - ( lambda - o0 ) * ( lambda - o0 ) / ( wO * wO )  );
+    float y = iY * exp( - ( lambda - y0 ) * ( lambda - y0 ) / ( wY * wY )  );
+    float c = iC * exp( - ( lambda - c0 ) * ( lambda - c0 ) / ( wC * wC )  );
+    float p = iP * exp( - ( lambda - p0 ) * ( lambda - p0 ) / ( wP * wP )  );
+
+    /*
+    orange #ffa500  1: 0.715 : 0.230
+    yellow #ffff00  1: 1     : 0
+    cian   #00ff00  0: 1     : 1
+    purple #804080  1: 0.5   : 1
+    */
+
+    r = r + o + y + p;
+    g = g + o*0.715 + y*0.83 + c + p *0.50;
+    b = b + o*0.23 + c + p;
+
+    if( r > 1.0 ) r = 1.0;
+    if( g > 1.0 ) g = 1.0;
+    if( b > 1.0 ) b = 1.0;
+
+    return vec3(r,g,b);
 }
 
 //------------------------------------------------------------------------------
@@ -939,7 +1004,7 @@ void main()
 
     Raytrace( R );
 
-    C = R.Wei * R.Emi;
+    C = R.Wei * R.Emi * waveLengthToRGB( R.Wav );
 
     A += ( C - A ) / N;
   }
