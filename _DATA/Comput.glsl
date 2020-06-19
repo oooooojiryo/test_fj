@@ -674,7 +674,7 @@ TRay MatSkyer( in TRay Ray, in THit Hit )
   Result.Wei = Ray.Wei;
   Result.Wav = Ray.Wav;
 
-  switch ( Ray.Wav )
+  switch ( Ray.Wav )                                                            // 波長ごとにRGBそれぞれの輝度を返す
   {
     case 700: Result.Emi =  texture( _Textur, VecToSky( Ray.Vec.xyz ) ).r; break;
     case 546: Result.Emi =  texture( _Textur, VecToSky( Ray.Vec.xyz ) ).g; break;
