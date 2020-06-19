@@ -440,8 +440,9 @@ struct TRay
 {
   vec4 Pos;
   vec4 Vec;
-  vec3 Wei;
-  vec3 Emi;
+  float Wei;
+  float Emi;
+  float Wav;
 };
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% THit
@@ -521,7 +522,7 @@ bool ObjSpher( in TRay Ray, inout THit Hit )
       Hit.t   = t;
       Hit.Pos = Ray.Pos + t * Ray.Vec;
       Hit.Nor = Hit.Pos;
-      Hit.Mat = 6;
+      Hit.Mat = 7;
 
       EndMove( Hit );
 
@@ -816,7 +817,14 @@ TRay MatThin2( in TRay Ray, in THit Hit )
   float ps = 2 * d * sin( Theta_1 ) * tan( Theta_2 );
   float D  = 2 * IOR2 * pm - IOR1 * ps;
 
+  float PD = Pi2 * mod( D / Ray.Wav, 1 );
 
+  Result.Vec = Ray.Vec;
+  Result.Pos = Ray.Pos;
+  Result.Wei = Ray.Wei * Pow2( cos( PD / 2 ) );
+  Result.Emi = Ray.Emi;
+
+  return Result;
 }
 
 TRay MatDiff2( in TRay Ray, in THit Hit )
@@ -895,6 +903,7 @@ void Raytrace( inout TRay Ray )
       case 4: Ray = MatThinf( Ray, Hit ); break;
     //case 5: Ray = MatLambe( Ray, Hit ); break;
       case 6: Ray = MatDiff2( Ray, Hit ); break;
+      case 7: Ray = MatThin2( Ray, Hit ); break;
     }
   }
 }
@@ -924,8 +933,9 @@ void main()
 
     R.Pos = _Camera * E;
     R.Vec = _Camera * normalize( S - E );
-    R.Wei = vec3( 1 );
-    R.Emi = vec3( 0 );
+    R.Wei = 1.0;
+    R.Emi = 0;
+    R.Wav = ( 780.0 - 380.0 ) * Rand() + 380;
 
     Raytrace( R );
 
