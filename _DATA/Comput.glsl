@@ -839,6 +839,7 @@ TRay MatThin2( in TRay Ray, in THit Hit )
     Result.Pos = Hit.Pos - _EmitShift * Nor;
   }
 
+
   float d = 500;                                                                // 膜の厚さ
   float IOR1 = 1.0;
   float IOR2 = 1.33333;
@@ -876,11 +877,11 @@ TRay MatDiff2( in TRay Ray, in THit Hit )
   TRay Result;
 
   Result.Vec.y = sqrt( Rand() );                                                // MatDiffuと同じ
-
-  float d = sqrt( 1 - Pow2( Result.Vec.y ) );
-  float v = Rand();
-
-  Result.Vec.x = d * cos( Pi2 * v );
+                                                                                //
+  float d = sqrt( 1 - Pow2( Result.Vec.y ) );                                   //
+  float v = Rand();                                                             //
+                                                                                //
+  Result.Vec.x = d * cos( Pi2 * v );                                            //
   Result.Vec.z = d * sin( Pi2 * v );                                            // ここまで
 
   float C = dot( Hit.Nor.xyz, Result.Vec.xyz );
@@ -902,19 +903,19 @@ TRay MatDiff2( in TRay Ray, in THit Hit )
 *******************************************************************************/
 
 /*******************************************************************************
-vec3 LambReflect( in TRay Ray )
+vec3 LambReflect( in TRay Ray )                                                 // カワラバトの表現
 {
   TRay Result;
 
   vec4 LIGHT = vec4(0, 2, 0, 0);                                                // 光源を設定
 
-  float C =  dot( Ray.Pos.xyz, Ray.Vec.xyz );          // 法線ベクトルと光源方向ベクトルのなす角のcos
-                                                                                // Cの1個目のRay.Pos.xyzはSphereの時だけ成立
+  float C =  dot( Ray.Pos.xyz, Ray.Vec.xyz );                                   // 法線ベクトルと光源方向ベクトルのなす角のcos
+                                                                                // dotの1個目のRay.Pos.xyzはSphereの時だけ成立
   if( C > 0 )
   {                                                                             // ランバート反射
-    float r =  0.9606217 * Ray.Emi.x * C;                                             // 光源のRGB値は(1.0, 1.0, 1.0)に設定
-    float g =  0.8449545 * Ray.Emi.y * C;                                             // 先頭の数値は薄膜反射率シュミレータから得たもの
-    float b =  0.4129899 * Ray.Emi.z * C;                                             // 左は空気、水、金Auの薄膜干渉の場合
+    float r =  0.9606217 * Ray.Emi.x * C;                                       // 光源のRGB値は(1.0, 1.0, 1.0)に設定
+    float g =  0.8449545 * Ray.Emi.y * C;                                       // 先頭の数値は薄膜反射率シュミレータから得たもの
+    float b =  0.4129899 * Ray.Emi.z * C;                                       // 左は空気、水、金Auの薄膜干渉の場合
                                                                                 // https://www.filmetricsinc.jp/reflectance-calculator
     return vec3( r, g, b );
   }
@@ -1051,9 +1052,9 @@ void main()
     RayB.Wei = 1.0;
     RayB.Emi = 0;
 
-    RayR.Wav =700;
-    RayG.Wav =546;
-    RayB.Wav =436;
+    RayR.Wav = 700;
+    RayG.Wav = 546;
+    RayB.Wav = 436;
 
     /*
       switch( int( floor( Rand() * 3 ) ) )
@@ -1069,7 +1070,7 @@ void main()
     Raytrace( RayG );
     Raytrace( RayB );
 
-    C = RayR.Wei * RayR.Emi * waveLengthToRGB( RayR.Wav )
+    C =   RayR.Wei * RayR.Emi * waveLengthToRGB( RayR.Wav )
         + RayG.Wei * RayG.Emi * waveLengthToRGB( RayG.Wav )
         + RayB.Wei * RayB.Emi * waveLengthToRGB( RayB.Wav );
 
