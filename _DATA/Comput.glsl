@@ -673,13 +673,13 @@ TRay MatSkyer( in TRay Ray, in THit Hit )
   Result.Pos = Ray.Pos;
   Result.Wei = Ray.Wei;
   Result.Wav = Ray.Wav;
-  //sult.Emi = Ray.Emi + texture( _Textur, VecToSky( Ray.Vec.xyz ) ).r
 
-  switch ( Ray.Wav ) {
-case 700: Result.Emi =  texture( _Textur, VecToSky( Ray.Vec.xyz ) ).r;
-case 546: Result.Emi =  texture( _Textur, VecToSky( Ray.Vec.xyz ) ).g;
-case 436: Result.Emi =  texture( _Textur, VecToSky( Ray.Vec.xyz ) ).b;
-}
+  switch ( Ray.Wav )
+  {
+    case 700: Result.Emi =  texture( _Textur, VecToSky( Ray.Vec.xyz ) ).r; break;
+    case 546: Result.Emi =  texture( _Textur, VecToSky( Ray.Vec.xyz ) ).g; break;
+    case 436: Result.Emi =  texture( _Textur, VecToSky( Ray.Vec.xyz ) ).b; break;
+  }
 
   return Result;
 }
@@ -814,7 +814,7 @@ TRay MatThinf( in TRay Ray, in THit Hit )
 TRay MatThin2( in TRay Ray, in THit Hit )
 {
   TRay Result;
-  float d =1000;
+  float d = 500;                                                                // 膜の厚さ
 
   float IOR1 = 1.0;
   float IOR2 = 1.33333;
@@ -833,6 +833,16 @@ TRay MatThin2( in TRay Ray, in THit Hit )
   Result.Wei = Ray.Wei * Pow2( cos( PD / 2 ) );
   Result.Emi = Ray.Emi;
   Result.Wav = Ray.Wav;
+
+  /*
+  switch ( Ray.Wav )
+  {
+    case 700: Result.Wei = Ray.Wei * 0.381229 ; break;
+    case 546: Result.Wei = Ray.Wei * 0.3921851; break;
+    case 436: Result.Wei = Ray.Wei * 0.4399138; break;
+  }
+  */
+
 
   return Result;
 }
@@ -986,7 +996,7 @@ vec3 waveLengthToRGB( in float lambda )
 void main()
 {
   vec4 E, S;
-  TRay RayR, RayG, RayB;
+  TRay RayR, RayG, RayB;                                                        // RayをRGBごとに3本生成
   vec3 A, C, P;
 
   _RandSeed = imageLoad( _Seeder, _WorkID.xy );
@@ -1020,16 +1030,16 @@ void main()
     RayB.Emi = 0;
 
     RayR.Wav =700;
-RayG.Wav =546;
-RayB.Wav =436;
+    RayG.Wav =546;
+    RayB.Wav =436;
 
     /*
       switch( int( floor( Rand() * 3 ) ) )
-  {
-    case 0: R.Wav =  700;
-    case 1: R.Wav =  546;
-    case 2: R.Wav =  436;
-  }
+    {
+      case 0: R.Wav =  700;
+      case 1: R.Wav =  546;
+      case 2: R.Wav =  436;
+    }
     //R.Wav = ( 780.0 - 380.0 ) * Rand() + 380;
     */
 
@@ -1038,8 +1048,8 @@ RayB.Wav =436;
     Raytrace( RayB );
 
     C = RayR.Wei * RayR.Emi * waveLengthToRGB( RayR.Wav )
- + RayG.Wei * RayG.Emi * waveLengthToRGB( RayG.Wav )
- + RayB.Wei * RayB.Emi * waveLengthToRGB( RayB.Wav );
+        + RayG.Wei * RayG.Emi * waveLengthToRGB( RayG.Wav )
+        + RayB.Wei * RayB.Emi * waveLengthToRGB( RayB.Wav );
 
     A += ( C - A ) / N;
   }
