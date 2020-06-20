@@ -884,14 +884,14 @@ TRay MatOxide( in TRay Ray, in THit Hit )                                       
   float d = 87.5;                                                               // 薄膜の厚さ（nm）：膜厚を変えれば色が変わる
 
   IOR0 = 1.000;
-  switch( Ray.Wav )                                                             // IOR1は目分量
+  switch( Ray.Wav )                                                             // IOR1は（とりあえず）目分量
   {                                                                             // IOR2は一応線形計算
     case 700: IOR1 = 2.498; IOR2 = 2.409; break;
     case 546: IOR1 = 2.563; IOR2 = 1.877; break;
     case 436: IOR1 = 2.748; IOR2 = 1.657; break;
   }
 
-  Result.Vec = vec4( reflect( Ray.Vec.xyz, Hit.Nor.xyz ), 0 );                  // 鏡面反射（じゃないほうがいいかも）
+  Result.Vec = vec4( reflect( Ray.Vec.xyz, Hit.Nor.xyz ), 0 );                  // 鏡面反射（じゃないほうがいいかも？）
 
   Theta_v = acos( dot( Hit.Nor.xyz, -Ray.Vec.xyz ) );                           // 視点方向からの光線の入射角
   Theta_l = acos( dot( Hit.Nor.xyz, Result.Vec.xyz ) );                         // 本来の光源方向からの光線の入射角
