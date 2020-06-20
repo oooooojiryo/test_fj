@@ -522,7 +522,7 @@ bool ObjSpher( in TRay Ray, inout THit Hit )
       Hit.t   = t;
       Hit.Pos = Ray.Pos + t * Ray.Vec;
       Hit.Nor = Hit.Pos;
-      Hit.Mat = 7;
+      Hit.Mat = 8;
 
       EndMove( Hit );
 
@@ -811,6 +811,9 @@ TRay MatThinf( in TRay Ray, in THit Hit )
 }
 *******************************************************************************/
 
+//------------------------------------------------------------------------------
+
+
 TRay MatThin2( in TRay Ray, in THit Hit )
 {
   TRay Result;
@@ -840,7 +843,7 @@ TRay MatThin2( in TRay Ray, in THit Hit )
   }
 
 
-  float d = 500;                                                                // 膜の厚さ
+  float d = 500;                                                                // 膜の厚さ(nm)
   float IOR1 = 1.0;
   float IOR2 = 1.33333;
 
@@ -851,7 +854,7 @@ TRay MatThin2( in TRay Ray, in THit Hit )
   float ps = 2 * d * sin( Theta_1 ) * tan( Theta_2 );
   float D  = 2 * IOR2 * pm - IOR1 * ps;                                         // 光路差
 
-  float PD = Pi2 * mod( D / Ray.Wav, 1 );                                       // 位相差
+  float PD = Pi2 * mod( D / Ray.Wav, 1 );                                       // 位相差 Ray.Wav(nm)
 
   Result.Wei = Ray.Wei * Pow2( cos( PD / 2 ) );
   Result.Emi = Ray.Emi;
@@ -869,6 +872,57 @@ TRay MatThin2( in TRay Ray, in THit Hit )
 
   return Result;
 }
+
+//------------------------------------------------------------------------------
+
+TRay MatOxide( in TRay Ray, in THit Hit )                                       // チタン酸化被膜の色表現
+{                                                                               // ハーフベクトルベースの薄膜干渉モデル
+  TRay Result;
+  float IOR0, IOR1, IOR2;                                                       // 0:空気、1:酸化被膜、2:チタン
+  float Theta_v, Theta_l, Theta_h, PhDiff, Theta_1, Theta_2;                    // 後述
+  float r01, r12, R;                                                            // r01,r12:フレネル反射係数 R:反射率
+  float d = 87.5;                                                               // 薄膜の厚さ（nm）：膜厚を変えれば色が変わる
+
+  IOR0 = 1.000;
+  switch( Ray.Wav )                                                             // IOR1は目分量
+  {                                                                             // IOR2は一応線形計算
+    case 700: IOR1 = 2.498; IOR2 = 2.409; break;
+    case 546: IOR1 = 2.563; IOR2 = 1.877; break;
+    case 436: IOR1 = 2.748; IOR2 = 1.657; break;
+  }
+
+  Result.Vec = vec4( reflect( Ray.Vec.xyz, Hit.Nor.xyz ), 0 );                  // 鏡面反射（じゃないほうがいいかも）
+
+  Theta_v = acos( dot( Hit.Nor.xyz, -Ray.Vec.xyz ) );                           // 視点方向からの光線の入射角
+  Theta_l = acos( dot( Hit.Nor.xyz, Result.Vec.xyz ) );                         // 本来の光源方向からの光線の入射角
+  Theta_h = ( Theta_v + Theta_l ) / 2;                                          // 今回のモデルの光源方向からの光線の入射角
+  Theta_1 = asin( sin( Theta_h ) * IOR0 / IOR1 );                               // 今回のモデルの光源方向からの光線の屈折角
+  Theta_2 = asin( sin( Theta_1 ) * IOR1 / IOR2 );                               // 入射角θ'、屈折角θ2
+
+  PhDiff = Pi2 * 2 * IOR1 * d * cos( Theta_1 ) / Ray.Wav;                       // 位相差＝2π*2ndcosθ/λ
+
+  r01 = Fresnel( Ray.Vec.xyz, Hit.Nor.xyz, IOR1 / IOR0 );                       // 偏光なしver
+  r12 = Fresnel( Ray.Vec.xyz, Hit.Nor.xyz, IOR2 / IOR1 );
+
+  /********************
+  r01 =   ( IOR1 * cos( Theta_h ) - IOR0 * cos( Theta_1 ) )                     // p偏光
+        / ( IOR1 * cos( Theta_h ) - IOR0 * cos( Theta_1 ) );
+  r12 =   ( IOR2 * cos( Theta_1 ) - IOR1 * cos( Theta_2 ) )                     // p偏光
+        / ( IOR2 * cos( Theta_1 ) - IOR1 * cos( Theta_2 ) );
+  ********************/
+
+  R =   ( Pow2( r01 + r12 * cos( PhDiff ) ) + Pow2( r12 * sin( PhDiff ) ) )     // 反射率
+      / ( Pow2( 1 + r12 * r01 * cos( PhDiff ) ) + Pow2( r12 * r01 * sin( PhDiff ) ) );
+
+  Result.Pos = Hit.Pos + _EmitShift * Hit.Nor;
+  Result.Wei = Ray.Wei * R;
+  Result.Emi = Ray.Emi;
+  Result.Wav = Ray.Wav;
+
+  return Result;
+}
+
+//------------------------------------------------------------------------------
 
 /*******************************************************************************
 
@@ -902,8 +956,10 @@ TRay MatDiff2( in TRay Ray, in THit Hit )
 }
 *******************************************************************************/
 
+//------------------------------------------------------------------------------
+
 /*******************************************************************************
-vec3 LambReflect( in TRay Ray )                                                 // カワラバトの表現
+vec3 LambReflect( in TRay Ray )                                                 // カワラバトの表現のやつ
 {
   TRay Result;
 
@@ -954,6 +1010,7 @@ void Raytrace( inout TRay Ray )
     //case 5: Ray = MatLambe( Ray, Hit ); break;
     //case 6: Ray = MatDiff2( Ray, Hit ); break;
       case 7: Ray = MatThin2( Ray, Hit ); break;
+      case 8: Ray = MatOxide( Ray, Hit ); break;
     }
   }
 }
