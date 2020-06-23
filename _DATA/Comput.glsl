@@ -26,6 +26,11 @@ const float Pi        = 3.141592653589793;
 const float Pi2       = Pi * 2.0;
 const float P2i       = Pi / 2.0;
 const float FLOAT_MAX = 3.402823e+38;
+const float FLOAT_EPS  = 1.1920928955078125E-7;
+const float FLOAT_EPS1 = FLOAT_EPS * 1E1;
+const float FLOAT_EPS2 = FLOAT_EPS * 1E2;
+const float FLOAT_EPS3 = FLOAT_EPS * 1E3;
+const float FLOAT_EPS4 = FLOAT_EPS * 1E4;
 
 const float SumX = 2285.826937;                                                 // Iin(λ)*x-(λ)のsum
 const vec2[81] ArrayX = vec2[](                                                 // vec2(λ, Iin(λ)*x-(λ))の配列
@@ -659,6 +664,108 @@ void ObjGrids( in TRay Ray, inout THit Hit )
   }
 }
 
+//------------------------------------------------------------------------------
+
+float TorusDF( in vec3 Pos, in float CirR, in float PipR )
+{
+  vec2 Q;
+
+  Q = vec2( length( Pos.yz ) - CirR, Pos.x );
+
+  return length( Q ) - PipR;
+}
+
+float WarpTwist( inout vec3 Pos, in float RotA, in float TwiR )
+{
+  float C, S, AR;
+
+  C = cos( RotA * Pos.y );
+  S = sin( RotA * Pos.y );
+
+  Pos.xz = mat2(  C, -S,
+                 +S,  C ) * Pos.xz;
+
+  AR = RotA * TwiR;
+
+  return 1.0 / sqrt( ( 2.0 + AR * ( AR + sqrt( 4.0 + Pow2( AR ) ) ) ) / 2.0 );  // Lipschitz constant
+}
+
+float DistFunc( in vec3 Pos )
+{
+  return WarpTwist( Pos, 1.0, 1.0+1.0/3.0 ) * TorusDF( Pos, 1.0, 1.0/3.0 );
+}
+
+//------------------------------------------------------------------------------
+
+vec3 GetNormal( in vec3 P )
+{
+  const vec3 Xd = vec3( FLOAT_EPS2, 0, 0 );
+  const vec3 Yd = vec3( 0, FLOAT_EPS2, 0 );
+  const vec3 Zd = vec3( 0, 0, FLOAT_EPS2 );
+
+  vec3 Result;
+
+  Result.x = DistFunc( P + Xd ) - DistFunc( P - Xd );
+  Result.y = DistFunc( P + Yd ) - DistFunc( P - Yd );
+  Result.z = DistFunc( P + Zd ) - DistFunc( P - Zd );
+
+  return normalize( Result );
+}
+
+bool ObjPrimi( in TRay Ray, inout THit Hit )
+{
+  vec3  P0, V0, N0, P, N;
+  float D0, S0, A0, T, A, D;
+  int   I;
+
+  P0 = Ray.Pos.xyz;
+  V0 = Ray.Vec.xyz;
+
+  D0 = DistFunc( P0 );
+
+  if ( abs( D0 ) < FLOAT_EPS4 )
+  {
+    N0 = GetNormal( P0 );
+    S0 = sign( dot( N0, V0 ) );
+    P0 = P0 + ( S0 * FLOAT_EPS4 - D0 ) * N0;
+    D0 = DistFunc( P0 );
+  }
+  else S0 = sign( D0 );
+
+  A0 = S0 * D0;
+
+  T =  0;
+  A = A0;
+
+  for( I = 1; I <= 100; I++ )
+  {
+    T = T + A;
+    P = P0 + V0 * T;
+    D = DistFunc( P );
+    A = S0 * D;
+
+    if ( A < FLOAT_EPS3 )
+    {
+      if ( ( 0 < T ) && ( T < Hit.t ) )
+      {
+        N = GetNormal( P );
+        P = P - D * N;
+
+        Hit.t   = T;
+        Hit.Pos.xyz = P;
+        Hit.Nor.xyz = N;
+        Hit.Mat = 7;
+
+        return true;
+      }
+
+      return false;
+    }
+  }
+
+  return false;
+}
+
 //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$【材質】
 
 float _EmitShift = 0.0001;
@@ -992,7 +1099,8 @@ void Raytrace( inout TRay Ray )
 
     ///// 物体
 
-    ObjSpher( Ray, Hit );
+    ObjPrimi( Ray, Hit );
+    //ObjSpher( Ray, Hit );
 
     ///// 材質
 
