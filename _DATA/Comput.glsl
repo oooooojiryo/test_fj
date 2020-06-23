@@ -522,7 +522,7 @@ bool ObjSpher( in TRay Ray, inout THit Hit )
       Hit.t   = t;
       Hit.Pos = Ray.Pos + t * Ray.Vec;
       Hit.Nor = Hit.Pos;
-      Hit.Mat = 7;
+      Hit.Mat = 8;
 
       EndMove( Hit );
 
@@ -814,7 +814,7 @@ TRay MatThinf( in TRay Ray, in THit Hit )
 //------------------------------------------------------------------------------
 
 
-TRay MatThin2( in TRay Ray, in THit Hit )                                       // シャボン玉
+TRay MatBubbl( in TRay Ray, in THit Hit )                                       // シャボン玉
 {
   TRay Result;
   float IOR, F;
@@ -871,7 +871,7 @@ TRay MatThin2( in TRay Ray, in THit Hit )                                       
 
 //------------------------------------------------------------------------------
 
-TRay MatOxide( in TRay Ray, in THit Hit )                                       // チタン酸化被膜の色表現
+TRay MatOxiTi( in TRay Ray, in THit Hit )                                       // チタン酸化被膜の色表現
 {                                                                               // ハーフベクトルベースの薄膜干渉モデル
   TRay Result;
   float IOR0, IOR1, IOR2;                                                       // 0:空気、1:酸化被膜、2:チタン
@@ -1005,8 +1005,8 @@ void Raytrace( inout TRay Ray )
     //case 4: Ray = MatThinf( Ray, Hit ); break;
     //case 5: Ray = MatLambe( Ray, Hit ); break;
     //case 6: Ray = MatDiff2( Ray, Hit ); break;
-      case 7: Ray = MatThin2( Ray, Hit ); break;
-      case 8: Ray = MatOxide( Ray, Hit ); break;
+      case 7: Ray = MatBubbl( Ray, Hit ); break;
+      case 8: Ray = MatOxiTi( Ray, Hit ); break;
     }
   }
 }
