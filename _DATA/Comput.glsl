@@ -522,7 +522,7 @@ bool ObjSpher( in TRay Ray, inout THit Hit )
       Hit.t   = t;
       Hit.Pos = Ray.Pos + t * Ray.Vec;
       Hit.Nor = Hit.Pos;
-      Hit.Mat = 8;
+      Hit.Mat = 7;
 
       EndMove( Hit );
 
@@ -814,7 +814,7 @@ TRay MatThinf( in TRay Ray, in THit Hit )
 //------------------------------------------------------------------------------
 
 
-TRay MatThin2( in TRay Ray, in THit Hit )
+TRay MatThin2( in TRay Ray, in THit Hit )                                       // シャボン玉
 {
   TRay Result;
   float IOR, F;
@@ -831,23 +831,11 @@ TRay MatThin2( in TRay Ray, in THit Hit )
     Nor = -Hit.Nor;
   }
 
-  F = Fresnel( Ray.Vec.xyz, Nor.xyz, IOR );
-
-  if ( Rand() < F )
-  {
-    Result.Vec = vec4( reflect( Ray.Vec.xyz, Nor.xyz ), 0 );
-    Result.Pos = Hit.Pos + _EmitShift * Nor;
-  } else {
-    Result.Vec = Ray.Vec;                                                       // refractではなく、そのまま透過させた
-    Result.Pos = Hit.Pos - _EmitShift * Nor;
-  }
-
-
-  float d = 500;                                                                // 膜の厚さ(nm)
+  float d = 700;                                                                // 膜の厚さ(nm)
   float IOR1 = 1.0;
   float IOR2 = 1.33333;
 
-  float Theta_1 = acos( dot( Hit.Nor.xyz, -Ray.Vec.xyz ) );                     // 視点方向からの光線の入射角
+  float Theta_1 = acos( clamp( dot( Hit.Nor.xyz, -Ray.Vec.xyz ), -1, +1 ) );    // 視点方向からの光線の入射角 clampで-1~+1に制限
   float Theta_2 = asin( sin( Theta_1 ) * IOR1 / IOR2 );                         // 視点方向からの光線の屈折角
 
   float pm = d / cos( Theta_2 );
@@ -856,7 +844,16 @@ TRay MatThin2( in TRay Ray, in THit Hit )
 
   float PD = Pi2 * mod( D / Ray.Wav, 1 );                                       // 位相差 Ray.Wav(nm)
 
-  Result.Wei = Ray.Wei * Pow2( cos( PD / 2 ) );
+  if ( Rand() < Pow2( cos( PD / 2 ) ) )
+  {                                                                             // 反射時
+    Result.Vec = vec4( reflect( Ray.Vec.xyz, Nor.xyz ), 0 );
+    Result.Pos = Hit.Pos + _EmitShift * Nor;
+  } else {                                                                      // 屈折時
+    Result.Vec = Ray.Vec;                                                       // refractではなく、そのまま透過させた
+    Result.Pos = Hit.Pos - _EmitShift * Nor;
+  }
+
+  Result.Wei = Ray.Wei;
   Result.Emi = Ray.Emi;
   Result.Wav = Ray.Wav;
 
@@ -869,7 +866,6 @@ TRay MatThin2( in TRay Ray, in THit Hit )
   }
   */
 
-
   return Result;
 }
 
@@ -881,7 +877,7 @@ TRay MatOxide( in TRay Ray, in THit Hit )                                       
   float IOR0, IOR1, IOR2;                                                       // 0:空気、1:酸化被膜、2:チタン
   float Theta_v, Theta_l, Theta_h, PhDiff, Theta_1, Theta_2;                    // 後述
   float r01, r12, R;                                                            // r01,r12:フレネル反射係数 R:反射率
-  float d = 87.5;                                                               // 薄膜の厚さ（nm）：膜厚を変えれば色が変わる
+  float d = 226.6;                                                               // 薄膜の厚さ（nm）：膜厚を変えれば色が変わる
 
   IOR0 = 1.000;
   switch( Ray.Wav )                                                             // IOR1は（とりあえず）目分量
