@@ -22,7 +22,7 @@ uses
   LUX.GPU.OpenGL.Atom.Textur.D1.Preset,
   LUX.GPU.OpenGL.Atom.Textur.D2.Preset,
   LUX.GPU.OpenGL.Atom.Textur.D3.Preset,
-  LUX.GPU.OpenGL.Comput;
+  LUX.GPU.OpenGL.Comput, FMX.Memo.Types;
 
 type
   TForm1 = class(TForm)
@@ -32,12 +32,14 @@ type
       TabItem2: TTabItem;
         Memo1: TMemo;
     Timer1: TTimer;
+    ScrollBar1: TScrollBar;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure Image1MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Single);
     procedure Image1MouseMove(Sender: TObject; Shift: TShiftState; X, Y: Single);
     procedure Image1MouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Single);
     procedure Timer1Timer(Sender: TObject);
+    procedure ScrollBar1Change(Sender: TObject);
   private
     { private 宣言 }
     _MouseS :TShiftState;
@@ -55,6 +57,8 @@ type
     _Camera :TGLStoBuf<TSingleM4>;
     _Textur :TGLCelTex2D_TAlphaColorF;
     _Voxels :TGLCelIma3D_TAlphaColorF;
+    //_Mapper :TGLCelIma2D_TAlphaColorF;
+    _Valuer :TGLStoBuf<Single>;
     ///// メソッド
     procedure InitComput;
     procedure InitSeeder;
@@ -103,6 +107,7 @@ begin
      _Comput.Buffers.Add( 'TCamera', _Camera );
      _Comput.Texturs.Add( '_Textur', _Textur );
      _Comput.Imagers.Add( '_Voxels', _Voxels );
+     _Comput.Buffers.Add( 'TValuer', _Valuer );
 end;
 
 //------------------------------------------------------------------------------
@@ -156,6 +161,11 @@ begin
      end;
 end;
 
+procedure TForm1.ScrollBar1Change(Sender: TObject);
+begin
+     _Valuer[ 0 ] := ScrollBar1.Value;
+end;
+
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
 procedure TForm1.FormCreate(Sender: TObject);
@@ -173,6 +183,7 @@ begin
      _Camera := TGLStoBuf<TSingleM4>    .Create( GL_DYNAMIC_DRAW );
      _Textur := TGLCelTex2D_TAlphaColorF.Create;
      _Voxels := TGLCelIma3D_TAlphaColorF.Create;
+     _Valuer := TGLStoBuf<Single>       .Create;
 
      InitComput;
 
@@ -200,6 +211,7 @@ begin
      _Camera.Free;
      _Textur.Free;
      _Voxels.Free;
+     _Valuer.Free;
 end;
 
 ////////////////////////////////////////////////////////////////////////////////

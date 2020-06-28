@@ -437,6 +437,11 @@ uniform sampler2D _Textur;
 
 layout( rgba32f ) uniform image3D _Voxels;
 
+layout( std430 ) buffer TValuer
+{
+  float _Valuer;
+};
+
 //############################################################################## ■
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TRay
@@ -938,7 +943,7 @@ TRay MatBubbl( in TRay Ray, in THit Hit )                                       
     Nor = -Hit.Nor;
   }
 
-  float d = 700;                                                                // 膜の厚さ(nm)
+  float d = _Valuer;                                                                // 膜の厚さ(nm)
   float IOR1 = 1.0;
   float IOR2 = 1.33333;
 
