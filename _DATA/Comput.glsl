@@ -938,7 +938,7 @@ TRay MatBubbl( in TRay Ray, in THit Hit )                                       
     Nor = -Hit.Nor;
   }
 
-  float d = 700;                                                                // 膜の厚さ(nm)
+  float d = 250;                                                                // 膜の厚さ(nm)
   float IOR1 = 1.0;
   float IOR2 = 1.33333;
 
@@ -951,7 +951,10 @@ TRay MatBubbl( in TRay Ray, in THit Hit )                                       
 
   float PD = Pi2 * mod( D / Ray.Wav, 1 );                                       // 位相差 Ray.Wav(nm)
 
-  if ( Rand() < Pow2( cos( PD / 2 ) ) )
+  //float R = 0.5 * cos( Pi + 4 * Pi * IOR2 * d / Ray.Wav ) + 0.5;
+  //float T = 0.01 * cos( 4 * Pi * IOR2 * d / Ray.Wav ) + 0.99;
+
+  if ( Rand() < Pow2( cos( PD / 2 ) ) * 0.8 )
   {                                                                             // 反射時
     Result.Vec = vec4( reflect( Ray.Vec.xyz, Nor.xyz ), 0 );
     Result.Pos = Hit.Pos + _EmitShift * Nor;
@@ -984,7 +987,7 @@ TRay MatOxiTi( in TRay Ray, in THit Hit )                                       
   float IOR0, IOR1, IOR2;                                                       // 0:空気、1:酸化被膜、2:チタン
   float Theta_v, Theta_l, Theta_h, PhDiff, Theta_1, Theta_2;                    // 後述
   float r01, r12, R;                                                            // r01,r12:フレネル反射係数 R:反射率
-  float d = 226.6;                                                               // 薄膜の厚さ（nm）：膜厚を変えれば色が変わる
+  float d = 160.6;                                                              // 薄膜の厚さ（nm）：膜厚を変えれば色が変わる
 
   IOR0 = 1.000;
   switch( Ray.Wav )                                                             // IOR1は（とりあえず）目分量
@@ -996,11 +999,11 @@ TRay MatOxiTi( in TRay Ray, in THit Hit )                                       
 
   Result.Vec = vec4( reflect( Ray.Vec.xyz, Hit.Nor.xyz ), 0 );                  // 鏡面反射（じゃないほうがいいかも？）
 
-  Theta_v = acos( dot( Hit.Nor.xyz, -Ray.Vec.xyz ) );                           // 視点方向からの光線の入射角
-  Theta_l = acos( dot( Hit.Nor.xyz, Result.Vec.xyz ) );                         // 本来の光源方向からの光線の入射角
+  Theta_v = acos( clamp( dot( Hit.Nor.xyz, -Ray.Vec.xyz ), -1, +1 ) );          // 視点方向からの光線の入射角
+  Theta_l = acos( clamp( dot( Hit.Nor.xyz, Result.Vec.xyz ), -1, +1 ) );        // 本来の光源方向からの光線の入射角
   Theta_h = ( Theta_v + Theta_l ) / 2;                                          // 今回のモデルの光源方向からの光線の入射角
   Theta_1 = asin( sin( Theta_h ) * IOR0 / IOR1 );                               // 今回のモデルの光源方向からの光線の屈折角
-  Theta_2 = asin( sin( Theta_1 ) * IOR1 / IOR2 );                               // 入射角θ'、屈折角θ2
+  Theta_2 = asin( sin( Theta_1 ) * IOR1 / IOR2 );                               // 入射角θ1、屈折角θ2
 
   PhDiff = Pi2 * 2 * IOR1 * d * cos( Theta_1 ) / Ray.Wav;                       // 位相差＝2π*2ndcosθ/λ
 
@@ -1190,8 +1193,15 @@ void main()
 
   for( uint N = _AccumN+1; N <= _AccumN+16; N++ )
   {
+    /**********
+    E = vec3( 0.02 * RandCirc(), 0 );
+    S.x = 4.0 * (       ( _WorkID.x + 0.5 + RandBS4() ) / _WorksN.x - 0.5 );
+    S.y = 3.0 * ( 0.5 - ( _WorkID.y + 0.5 + RandBS4() ) / _WorksN.y       );
+    S.z = -2;
+    **********/
+
     E = vec4( 0, 0, 0, 1 );
-    E.xy += 0.05 * RandCirc();
+    //E.xy += 0.05 * RandCirc();
 
     S.x = 4.0 * ( _WorkID.x + 0.5 ) / _WorksN.x - 2.0;
     S.y = 1.5 - 3.0 * ( _WorkID.y + 0.5 ) / _WorksN.y;
